@@ -6,10 +6,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -26,16 +24,22 @@ public class LinkController {
 		this.linkService = linkService;
 	}
 
-	@PostMapping("link")
+	@PostMapping(path = "link", consumes = {"application/x-www-form-urlencoded", "application/form-data"})
 	@ResponseBody
 	public String getShortLink(ShortLinkRequest request, HttpServletResponse res) {
 		String shortLink = "";
 		try {
-			shortLink  = linkService.getShortLink(request.fullLink(), res);
+			shortLink  = linkService.getShortLink(request.getFullLink(), res);
 		} catch (NoSuchAlgorithmException e) {
 			logger.error(String.valueOf(e));
 		}
 		return shortLink;
+	}
+
+	@GetMapping("/")
+	public String getShortlinkForm(Model model) {
+		model.addAttribute("shortLinkRequest", new ShortLinkRequest());
+		return "index";
 	}
 
 	@GetMapping("link/{shortLink}")
@@ -45,7 +49,7 @@ public class LinkController {
 		try {
 			fullLink = linkService.getFullLink(shortLink, res);
 		} catch (NoSuchElementException e) {
-			logger.error("No link found for short link: '{}'", fullLink);
+			logger.error("No link found for short link: '{}'", shortLink);
 			res.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		}
 		res.sendRedirect(fullLink);

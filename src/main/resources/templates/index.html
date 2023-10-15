@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Link Shortener</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"/>
+    <script th:src="@{/webjars/jquery/jquery.min.js}"></script>
+</head>
+<body>
+<div>
+    <h1 class="text-center">Welcome to my link shortener application!</h1>
+    <div>
+        <form id="linkShortenerForm" th:object="(${shortLinkRequest})"  class="mx-auto" style="max-width:500px;">
+
+            <div id="alertPlaceholder"></div>
+            <!-- fullLink input -->
+            <div class="form-outline mb-4">
+                <label class="form-label" for="fullLink">Full link</label>
+                <input th:field="*{fullLink}" id="fullLink" class="form-control" required/>
+            </div>
+
+            <!-- Buttons -->
+            <button type="button" class="btn btn-primary btn-block mb-4" onclick="generateShortLink()">Generate Link</button>
+            <button type="button" class="btn btn-primary btn-block mb-4" onclick="resetForm()">Reset</button>
+        </form>
+    </div>
+</div>
+<script>
+    $('#linkShortenerForm').on('keyup keypress', function(e) {
+      var keyCode = e.keyCode || e.which;
+      if (keyCode === 13) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    function generateShortLink() {
+
+        let form = $("#linkShortenerForm");
+        $.ajax({
+            type:"POST",
+            url:"/link",
+            data:form.serialize(),
+            success: function(data) {
+                generateSuccessAlert(window.location.href + "link/" + data);
+            },
+            error: function(xhr, ajaxOptions, thrownError) {
+                generateFailureAlert();
+            }
+        });
+    }
+
+    function generateSuccessAlert(link) {
+        const alertPlaceholder = document.getElementById("alertPlaceholder");
+        const wrapper = document.createElement("div");
+        alertPlaceholder.innerHTML =
+        "<div class = 'alert alert-success'><p>Link generated successfully:</p><a href='"+link+"'>" + link + "</a></div>";
+    }
+
+    function generateFailureAlert() {
+        const alertPlaceholder = document.getElementById("alertPlaceholder");
+        const wrapper = document.createElement("div");
+        alertPlaceholder.innerHTML = "<div class = 'alert alert-danger'>Invalid link</div>";
+    }
+
+    function resetForm() {
+        document.getElementById("linkShortenerForm").reset();
+        const alertPlaceholder = document.getElementById("alertPlaceholder");
+        const wrapper = document.createElement("div");
+        alertPlaceholder.innerHTML = "";
+    }
+</script>
+</body>
+</html>
